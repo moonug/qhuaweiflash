@@ -101,7 +101,9 @@ unsigned short crctab[] = {
 int i;
 unsigned short crc=0xffff;  
 
-for(i=0;i<len;i++)  crc=crctab[(buf[i]^crc)&0xff]^((crc>>8)&0xff);  
+for(i=0;i<len;i++) {
+    crc=crctab[(buf[i]^crc)&0xff]^((crc>>8)&0xff);
+}
 return (~crc)&0xffff;
 }
 

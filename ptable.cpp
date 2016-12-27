@@ -238,10 +238,15 @@ fsize=ftell(in);
 rewind(in);
 
 // выделяем память под новый раздел
-realloc(table[np].pimage,fsize);
-
+uint8_t* ni = (uint8_t*)malloc(fsize);
 // читаем новый образ раздела
-fread(table[np].pimage,1,fsize,in);
+fread(ni,1,fsize,in);
+
+// Удаляем старый образ раздела
+delete [] table[np].pimage;
+
+// Добавляем новый образ раздела
+table[np].pimage = ni;
 
 // корректируем размер раздела в заголовке
 table[np].hd.psize=fsize;
@@ -261,11 +266,10 @@ uint8_t pad=0;
 fwrite(hptr(np),1,sizeof(pheader),out);   // заголовок
 fwrite(table[np].csumblock,1,crcsize(np),out);  // crc
 fwrite(iptr(np),1,psize(np),out);   // тело
-
 // Выравнивание хвоста на границу слова
 pos=ftell(out);
 if ((pos&3) != 0) {
-  cnt=pos-(pos&3); // получаем число лишних байт;
+  cnt=4-(pos&3); // получаем число лишних байт;
   for(i=0;i<cnt;i++) fwrite(&pad,1,1,out);  // записываем нули до границы слова
 }  
 
