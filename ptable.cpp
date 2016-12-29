@@ -1,6 +1,7 @@
 // Процедуры работы с таблицей разделов
 
 #include <QtWidgets>
+#include <QMessageBox>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -247,6 +248,24 @@ delete [] table[np].pimage;
 
 // Добавляем новый образ раздела
 table[np].pimage = ni;
+
+const uint8_t header[10] = {0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0b};
+if (fsize > 10 // Заголовок может быть
+        && iptr(np)[0] == 0x1f && iptr(np)[1] == 0x8b // Это gzip
+        && !(memcmp(iptr(np),header,10) == 0)) {
+    QString hex_h = QString("%1").arg(QString::number(iptr(np)[0],16),2,QChar('0'));
+    for (int i=1; i<10;++i) {
+        hex_h = QString("%1 %2").arg(hex_h).arg(QString::number(iptr(np)[i],16),2,QChar('0'));
+    }
+    QString h = QString("Ваш заголовок:\n %1, обычно это\n %2.\nПоправить?")
+            .arg(hex_h)
+            .arg("1f 8b 08 00 00 00 00 00 00 0b");
+    qDebug() << h;
+//    QMessageBox::StandardButton a = QMessageBox::question(0, "Поправить заголовок gzip?", "ss");
+//    if (a == QMessageBox::Yes) {
+        memcpy(iptr(np),header,10);
+//    }
+}
 
 // корректируем размер раздела в заголовке
 table[np].hd.psize=fsize;
